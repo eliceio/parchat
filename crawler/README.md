@@ -5,7 +5,7 @@ $ source myvenv/bin/activate
 (myvenv) $ pip install -r requirements.txt
 (myvenv) $ scrapy crawl pokr
 ```
-After the work is over, "pokr.json" file will be generated(It takes 1h 40m in my computer to complete). <br/>
+After the work is over, "pokr.json" file will be generated(It took about 40m in my computer to complete). <br/>
 It contains list of items, and each item consists of the following parameters.
 
 # Parameters
