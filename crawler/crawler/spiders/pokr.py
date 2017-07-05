@@ -79,8 +79,6 @@ class PokrSpider(scrapy.Spider):
                 "id": id,
             }
             self.items.append(item)
-            print(item)
-            assert(False)
             yield item
 
     def spider_closed(self, spider):
