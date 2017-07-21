@@ -4,17 +4,20 @@ import re
 import json
 
 from html2text import html2text
+from scrapy.exceptions import CloseSpider
 
 
-class PokrSpider(scrapy.Spider):
-    name = 'pokr'
+class PokrMiniSpider(scrapy.Spider):
+    name = 'pokr_mini'
     allowed_domains = ['pokr.kr']
     url_template = "http://pokr.kr%s"
     items = []
+    doc_counter = 0
+    doc_max = 5
 
     @classmethod
     def from_crawler(cls, crawler, *args, **kwargs):
-        spider = super(PokrSpider, cls).from_crawler(crawler, *args, **kwargs)
+        spider = super(PokrMiniSpider, cls).from_crawler(crawler, *args, **kwargs)
         crawler.signals.connect(spider.spider_closed, signal=scrapy.signals.spider_closed)
         return spider
 
@@ -80,6 +83,10 @@ class PokrSpider(scrapy.Spider):
             self.items.append(item)
             yield item
 
+        self.doc_counter += 1
+        if self.doc_counter >= self.doc_max:
+            raise CloseSpider("Crawled enough documents!")
+
     def spider_closed(self, spider):
-        with open("pokr.json", "w") as f:
+        with open("pokr_%d_doc.json" % self.doc_max, "w") as f:
             json.dump(self.items, f)
