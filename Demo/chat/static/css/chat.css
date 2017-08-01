@@ -1,0 +1,15 @@
+.ui.comments .comment .avatar img, .ui.comments .comment img.avatar {
+    height: auto !important;
+}
+
+.ui.comments {
+    max-width: None !important;
+}
+
+.ui.comments .reply.form textarea {
+    height: auto !important;
+}
+
+#send-btn {
+    padding: 2.2rem 0;
+}

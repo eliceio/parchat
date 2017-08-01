@@ -1,0 +1,16 @@
+{% load custom_tags %}
+
+<div class="comment">
+    <a class="avatar">
+        <img src="{{user_type|to_img_path}}">
+    </a>
+    <div class="content">
+        <a class="author">{{user_type|title}}</a>
+        <div class="metadata">
+            <span class="date">{% now "g:i A" %}</span>
+        </div>
+        <div class="text">
+            {{ content }}
+        </div>
+    </div>
+</div>

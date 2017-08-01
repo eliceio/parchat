@@ -1,0 +1,29 @@
+{% extends "bases/base.html" %}
+{% load static %}
+{% load custom_tags %}
+
+
+{% block css %}
+<link rel="stylesheet" href="{% static 'css/chat.css' %}">
+{% endblock %}
+
+
+{% block content %}
+<div id="comments" class="ui comments">
+    <h3 class="ui dividing header">Chatting Room</h3>
+    {% include "message.html" with user_type=request.path|to_user_type content="Hello!" %}
+</div>
+<div class="ui reply form">
+    <div class="ui grid field">
+        <textarea id="send-msg" class="thirteen wide column" rows="3"></textarea>
+        <div id="send-btn" class="two wide column ui blue button middle aligned">
+            Send
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block script %}
+<script src="{% static 'js/chat.js' %}"></script>
+{% endblock %}
