@@ -36,9 +36,10 @@ def echo(request):
     response_type = grab_response_type(request.POST["request_from"])
     message = request.POST["message"]
 
-    print(message)
-
-    answer = return_A(message)
+    try:
+        answer = return_A(message)
+    except:
+        answer = message
 
     args = {
         "user_type": response_type,
