@@ -5,12 +5,13 @@ import numpy as np
 import json
 from konlpy.tag import Twitter
 import pickle
+import jpype
 
 
-with open('chat/static/models/A.pickle','rb') as fp:
-    A = pickle.load(fp)
+with open('chat/static/models/A.pickle', 'rb') as fp:
+    Answers = pickle.load(fp)
 with open('chat/static/models/vector_A.json', 'r') as fp:
-    vector_A = json.load(fp)
+    Answer_vectors = json.load(fp)
 with open('chat/static/models/LSTQ.json', 'r') as fp:
     A_estimate = json.load(fp)
 with open('chat/static/models/all_nouns.json', "r") as fp:
@@ -19,7 +20,6 @@ dictionary = gensim.corpora.Dictionary(all_nouns)
 wor2vec_model = gensim.models.Word2Vec.load('chat/static/models/word2vecmodel')
 lda_model = gensim.models.ldamodel.LdaModel.load('chat/static/models/ldamodel')
 Tw = Twitter()
-
 
 @ensure_csrf_cookie
 def progressive(request):
@@ -36,10 +36,7 @@ def echo(request):
     response_type = grab_response_type(request.POST["request_from"])
     message = request.POST["message"]
 
-    try:
-        answer = return_A(message)
-    except:
-        answer = message
+    answer = get_response(message)
 
     args = {
         "user_type": response_type,
@@ -68,47 +65,32 @@ def grab_response_type(string):
             return type
 
 
-def vector(q):
-    morphs = Tw.morphs(q)
-    print("pass")
+def vectorize(sentence):
+    jpype.attachThreadToJVM()
+    morphs = Tw.morphs(sentence)
 
-    ldalist = np.zeros(30)
+    wv = wor2vec_model.wv
+    w2v_vector_list = [wv[word] if word in wv else np.zeros(200) for word in morphs]
+    w2v_vector = np.mean(w2v_vector_list, axis=0)
 
     doc2bow = [dictionary.doc2bow(morphs)]
+    lda_topic_list = lda_model.get_document_topics(doc2bow)[0]
+    lda_vector = np.zeros(30)
+    for topic_ix, possibility in lda_topic_list:
+        lda_vector[topic_ix] = possibility
 
-    for pair in lda_model.get_document_topics(doc2bow)[0]:
-        ldalist[pair[0]] = pair[1]
+    sentence_vector = np.concatenate([w2v_vector, lda_vector])
 
-    k = []
-
-    for word in morphs:
-        try:
-            k.append(wor2vec_model.wv[word])
-        except:
-            k.append(np.zeros(200))
-
-    k = np.array(k)
-
-    word2vec = np.zeros(200)
-
-    for i in range(len(word2vec)):
-        word2vec[i] = (np.mean(k[:, i]))
-
-    return (np.append(word2vec, ldalist).tolist())
+    return sentence_vector
 
 
-def return_A(message):
-    ex_A = np.dot(vector(message), A_estimate)
-
-    min_dis = 1000
-    index = 0
-    for j in range(len(vector_A)):
-        dis = np.linalg.norm((vector_A[j] - ex_A))
-        if dis <= min_dis:
-            min_dis = dis
-            index = j
+def get_response(message):
+    response_vector = np.dot(vectorize(message), A_estimate)
+    distances = np.linalg.norm(Answer_vectors - response_vector, axis=1)
+    closest_idx = np.argmin(distances)
+    response = Answers[closest_idx][0]
 
     print('Q:', message)
-    print('Predict A:', A[index][0])
+    print('Predict A:', response)
 
-    return A[index][0]
+    return response
