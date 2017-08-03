@@ -1,6 +1,7 @@
 <a class="item {% if request.path == '/' %} active {% endif %}" href="{% url 'main' %}">HOME</a>
 <a class="item {% if 'gyeongmin' in request.path %} active {% endif %}" href="{% url 'gyeongmin' %}">Gyeongmin</a>
-<a class="item {% if 'soonho' in request.path %} active {% endif %}" href="{% url 'soonho' %}">Soonho</a>
+<a class="item {% if 'soonho/pro' in request.path %} active {% endif %}" href="{% url 'soonho_pro' %}">Soonho - Progressive</a>
+<a class="item {% if 'soonho/con' in request.path %} active {% endif %}" href="{% url 'soonho_con' %}">Soonho - Conservative</a>
 <div class="right item">
 
 </div>

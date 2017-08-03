@@ -7,7 +7,14 @@ register = template.Library()
 
 @register.filter(name="to_img_path")
 def to_img_path(tag):
-    return "/static/images/%s.png" % tag
+    tag_img_path_dict = {
+        "user": "user",
+        "Gyeongmin": "gyeongmin",
+        "Soonho - Progressive": "soonho_pro",
+        "Soonho - Conservative": "soonho_con",
+    }
+    img_name = tag_img_path_dict[tag]
+    return "/static/images/%s.png" % img_name
 
 
 @register.filter(name="to_user_type")

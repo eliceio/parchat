@@ -1,19 +1,26 @@
 from django.shortcuts import render
 from django.views.decorators.csrf import ensure_csrf_cookie
+from scipy.spatial.distance import cosine
 import gensim
 import numpy as np
 import json
 from konlpy.tag import Twitter
-import pickle
 import jpype
 import requests
 
-with open('chat/static/models/A.pickle', 'rb') as fp:
-    Answers = pickle.load(fp)
-with open('chat/static/models/vector_A.json', 'r') as fp:
-    Answer_vectors = json.load(fp)
-with open('chat/static/models/LSTQ.json', 'r') as fp:
-    A_estimate = json.load(fp)
+
+with open('chat/static/models/pro_A.json', 'r') as fp:
+    progressive_answer = json.load(fp)
+with open('chat/static/models/pro_Avec.json', 'r') as fp:
+    progressive_answer_vectors = json.load(fp)
+with open('chat/static/models/LSTQ_pro.json', 'r') as fp:
+    A_estimate_pro = json.load(fp)
+with open('chat/static/models/con_A.json', 'r') as fp:
+    conservative_answer = json.load(fp)
+with open('chat/static/models/con_Avec.json', 'r') as fp:
+    conservative_answer_vectors = json.load(fp)
+with open('chat/static/models/LSTQ_con.json', 'r') as fp:
+    A_estimate_con = json.load(fp)
 with open('chat/static/models/all_nouns.json', "r") as fp:
     all_nouns = json.load(fp)
 dictionary = gensim.corpora.Dictionary(all_nouns)
@@ -28,8 +35,13 @@ def chat_gm(request):
 
 
 @ensure_csrf_cookie
-def chat_sh(request):
-    return render(request, "chat_sh.html")
+def chat_sh_pro(request):
+    return render(request, "chat_sh_pro.html")
+
+
+@ensure_csrf_cookie
+def chat_sh_con(request):
+    return render(request, "chat_sh_con.html")
 
 
 @ensure_csrf_cookie
@@ -56,11 +68,25 @@ def answer_gm(request):
 
 
 @ensure_csrf_cookie
-def answer_sh(request):
+def answer_sh_pro(request):
     response_type = grab_response_type(request.POST["request_from"])
     message = request.POST["message"]
 
-    answer = get_response(message)
+    answer = get_progressive_response(message)
+
+    args = {
+        "user_type": response_type,
+        "content": answer
+    }
+    return render(request, "message.html", args)
+
+
+@ensure_csrf_cookie
+def answer_sh_con(request):
+    response_type = grab_response_type(request.POST["request_from"])
+    message = request.POST["message"]
+
+    answer = get_conservative_response(message)
 
     args = {
         "user_type": response_type,
@@ -80,13 +106,15 @@ def echo_user(request):
 
 
 def grab_response_type(string):
-    response_types = [
-        "gyeongmin",
-        "soonho"
-    ]
-    for type in response_types:
+    response_type_dict = {
+        "gyeongmin": "Gyeongmin",
+        "soonho/pro": "Soonho - Progressive",
+        "soonho/con": "Soonho - Conservative",
+    }
+
+    for type in response_type_dict:
         if type in string:
-            return type
+            return response_type_dict[type]
 
 
 def vectorize(sentence):
@@ -108,12 +136,53 @@ def vectorize(sentence):
     return sentence_vector
 
 
-def get_response(message):
-    response_vector = np.dot(vectorize(message), A_estimate)
-    distances = np.linalg.norm(Answer_vectors - response_vector, axis=1)
-    closest_idx = np.argmin(distances)
-    response = Answers[closest_idx][0]
+def get_progressive_response(message):
+    response_vector = np.dot(vectorize(message), A_estimate_pro)
 
+    # L2 norm
+    l2_distances = np.linalg.norm(progressive_answer_vectors - response_vector, axis=1)
+    l2_closest_idx = np.argmin(l2_distances)
+    l2_response = progressive_answer[l2_closest_idx][0]
+
+    # Cosine distance
+    cosine_distances = [cosine(a, response_vector) for a in progressive_answer_vectors]
+    cosine_closest_idx = np.argmin(cosine_distances)
+    cosine_response = progressive_answer[cosine_closest_idx][0]
+
+    response = '''
+        <strong>[L2 norm]</strong><br>
+        %s
+        <br>
+        <strong>[Cosine distance]</strong><br>
+        %s
+    ''' % (l2_response, cosine_response)
+
+    print('Q:', message)
+    print('Predict A:', response)
+
+    return response
+
+
+def get_conservative_response(message):
+    response_vector = np.dot(vectorize(message), A_estimate_con)
+
+    # L2 distance
+    l2_distances = np.linalg.norm(conservative_answer_vectors - response_vector, axis=1)
+    l2_closest_idx = np.argmin(l2_distances)
+    l2_response = conservative_answer[l2_closest_idx][0]
+
+    # Cosine distance
+    cosine_distances = [cosine(a, response_vector) for a in conservative_answer_vectors]
+    cosine_closest_idx = np.argmin(cosine_distances)
+    cosine_response = conservative_answer[cosine_closest_idx][0]
+
+    response = '''
+        <strong>[L2 norm]</strong><br>
+        %s
+        <br>
+        <strong>[Cosine distance]</strong><br>
+        %s
+    ''' % (l2_response, cosine_response)
     print('Q:', message)
     print('Predict A:', response)
 

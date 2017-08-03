@@ -10,7 +10,7 @@
             <span class="date">{% now "g:i A" %}</span>
         </div>
         <div class="text">
-            {{ content }}
+            {{ content|safe }}
         </div>
     </div>
 </div>
