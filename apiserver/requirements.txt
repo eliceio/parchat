@@ -1,0 +1,5 @@
+konlpy==0.4.4
+gensim==2.3.0
+numpy==1.13.1
+Flask==0.12.2
+JPype1==0.6.2
