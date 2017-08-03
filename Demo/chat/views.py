@@ -6,7 +6,7 @@ import json
 from konlpy.tag import Twitter
 import pickle
 import jpype
-
+import requests
 
 with open('chat/static/models/A.pickle', 'rb') as fp:
     Answers = pickle.load(fp)
@@ -21,18 +21,42 @@ wor2vec_model = gensim.models.Word2Vec.load('chat/static/models/word2vecmodel')
 lda_model = gensim.models.ldamodel.LdaModel.load('chat/static/models/ldamodel')
 Tw = Twitter()
 
-@ensure_csrf_cookie
-def progressive(request):
-    return render(request, "chat.html")
-
 
 @ensure_csrf_cookie
-def conservative(request):
-    return render(request, "chat.html")
+def chat_gm(request):
+    return render(request, "chat_gm.html")
 
 
 @ensure_csrf_cookie
-def echo(request):
+def chat_sh(request):
+    return render(request, "chat_sh.html")
+
+
+@ensure_csrf_cookie
+def answer_gm(request):
+    response_type = grab_response_type(request.POST["request_from"])
+    message = request.POST["message"]
+
+    res = requests.post(
+        "http://elice-guest-ds-01.koreasouth.cloudapp.azure.com:5000",
+        data = json.dumps({
+            "msg": message
+        }),
+        headers = {
+            "Content-Type": "application/json; charset=utf-8"
+        }
+    )
+    answer = res.text
+
+    args = {
+        "user_type": response_type,
+        "content": answer
+    }
+    return render(request, "message.html", args)
+
+
+@ensure_csrf_cookie
+def answer_sh(request):
     response_type = grab_response_type(request.POST["request_from"])
     message = request.POST["message"]
 
@@ -57,8 +81,8 @@ def echo_user(request):
 
 def grab_response_type(string):
     response_types = [
-        "progressive",
-        "conservative"
+        "gyeongmin",
+        "soonho"
     ]
     for type in response_types:
         if type in string:
