@@ -41,7 +41,7 @@ function construct_user_message(message) {
 function send_and_receive_message(message) {
     return $.ajax({
         type: "POST",
-        url: "/chat/answer/gm/",
+        url: "/chat/response/all_meta/",
         data: {
             message: message,
             request_from: window.location.href,

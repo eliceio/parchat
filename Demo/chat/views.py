@@ -8,53 +8,77 @@ from konlpy.tag import Twitter
 import jpype
 import requests
 
+""" ALL + METADATA """
+with open('chat/static/models/all_meta_A.json', 'r') as fp:
+    all_meta_answer = json.load(fp)
+with open('chat/static/models/all_meta_Avec.json', 'r') as fp:
+    all_meta_answer_vectors = json.load(fp)
+with open('chat/static/models/all_meta_LSTSQ.json', 'r') as fp:
+    A_estimate_all_meta = json.load(fp)
 
+""" Progressive """
 with open('chat/static/models/pro_A.json', 'r') as fp:
     progressive_answer = json.load(fp)
 with open('chat/static/models/pro_Avec.json', 'r') as fp:
     progressive_answer_vectors = json.load(fp)
-with open('chat/static/models/LSTQ_pro.json', 'r') as fp:
+with open('chat/static/models/pro_LSTSQ.json', 'r') as fp:
     A_estimate_pro = json.load(fp)
+
+""" Conservative """
 with open('chat/static/models/con_A.json', 'r') as fp:
     conservative_answer = json.load(fp)
 with open('chat/static/models/con_Avec.json', 'r') as fp:
     conservative_answer_vectors = json.load(fp)
-with open('chat/static/models/LSTQ_con.json', 'r') as fp:
+with open('chat/static/models/con_LSTSQ.json', 'r') as fp:
     A_estimate_con = json.load(fp)
-with open('chat/static/models/all_nouns.json', "r") as fp:
-    all_nouns = json.load(fp)
-dictionary = gensim.corpora.Dictionary(all_nouns)
-wor2vec_model = gensim.models.Word2Vec.load('chat/static/models/word2vecmodel')
-lda_model = gensim.models.ldamodel.LdaModel.load('chat/static/models/ldamodel')
+
+""" LDA, W2V, KoNLPy.Twitter """
+with open('chat/static/models/sh_all_nouns.json', "r") as fp:
+    sh_all_nouns = json.load(fp)
+sh_dictionary = gensim.corpora.Dictionary(sh_all_nouns)
+sh_wor2vec_model = gensim.models.Word2Vec.load('chat/static/models/sh_W2V.model')
+sh_lda_model = gensim.models.ldamodel.LdaModel.load('chat/static/models/sh_LDA.model')
+
+with open('chat/static/models/gm_all_nouns.json', "r") as fp:
+    gm_all_nouns = json.load(fp)
+gm_dictionary = gensim.corpora.Dictionary(list(gm_all_nouns.values()))
+gm_wor2vec_model = gensim.models.Word2Vec.load('chat/static/models/gm_W2V.model')
+gm_lda_model = gensim.models.ldamodel.LdaModel.load('chat/static/models/gm_LDA.model')
 Tw = Twitter()
 
 
 @ensure_csrf_cookie
-def chat_gm(request):
-    return render(request, "chat_gm.html")
+def chat_all(request):
+    return render(request, "chat_all.html")
 
 
 @ensure_csrf_cookie
-def chat_sh_pro(request):
-    return render(request, "chat_sh_pro.html")
+def chat_all_meta(request):
+    return render(request, "chat_all_meta.html")
 
 
 @ensure_csrf_cookie
-def chat_sh_con(request):
-    return render(request, "chat_sh_con.html")
+def chat_progressive(request):
+    return render(request, "chat_progressive.html")
 
 
 @ensure_csrf_cookie
-def answer_gm(request):
+def chat_conservative(request):
+    return render(request, "chat_conservative.html")
+
+
+@ensure_csrf_cookie
+def response_all(request):
+    print(request.POST)
     response_type = grab_response_type(request.POST["request_from"])
     message = request.POST["message"]
 
     res = requests.post(
         "http://elice-guest-ds-01.koreasouth.cloudapp.azure.com:5000",
-        data = json.dumps({
+        data=json.dumps({
             "msg": message
         }),
-        headers = {
+        headers={
             "Content-Type": "application/json; charset=utf-8"
         }
     )
@@ -68,7 +92,21 @@ def answer_gm(request):
 
 
 @ensure_csrf_cookie
-def answer_sh_pro(request):
+def response_all_meta(request):
+    response_type = grab_response_type(request.POST["request_from"])
+    message = request.POST["message"]
+
+    answer = get_all_meta_response(message)
+
+    args = {
+        "user_type": response_type,
+        "content": answer
+    }
+    return render(request, "message.html", args)
+
+
+@ensure_csrf_cookie
+def response_progressive(request):
     response_type = grab_response_type(request.POST["request_from"])
     message = request.POST["message"]
 
@@ -82,7 +120,7 @@ def answer_sh_pro(request):
 
 
 @ensure_csrf_cookie
-def answer_sh_con(request):
+def response_conservative(request):
     response_type = grab_response_type(request.POST["request_from"])
     message = request.POST["message"]
 
@@ -107,9 +145,10 @@ def echo_user(request):
 
 def grab_response_type(string):
     response_type_dict = {
-        "gyeongmin": "Gyeongmin",
-        "soonho/pro": "Soonho - Progressive",
-        "soonho/con": "Soonho - Conservative",
+        "all": "Congressman",
+        "all_meta": "Congressman",
+        "progressive": "Progressive Congressman",
+        "conservative": "Conservative Congressman",
     }
 
     for type in response_type_dict:
@@ -117,27 +156,77 @@ def grab_response_type(string):
             return response_type_dict[type]
 
 
-def vectorize(sentence):
+def vectorize_230(sentence):
     jpype.attachThreadToJVM()
     morphs = Tw.morphs(sentence)
 
-    wv = wor2vec_model.wv
+    wv = sh_wor2vec_model.wv
     w2v_vector_list = [wv[word] if word in wv else np.zeros(200) for word in morphs]
     w2v_vector = np.mean(w2v_vector_list, axis=0)
 
-    doc2bow = [dictionary.doc2bow(morphs)]
-    lda_topic_list = lda_model.get_document_topics(doc2bow)[0]
+    doc2bow = [sh_dictionary.doc2bow(morphs)]
+    lda_topic_list = sh_lda_model.get_document_topics(doc2bow)[0]
     lda_vector = np.zeros(30)
     for topic_ix, possibility in lda_topic_list:
         lda_vector[topic_ix] = possibility
 
     sentence_vector = np.concatenate([w2v_vector, lda_vector])
+    assert len(sentence_vector) == 230
 
     return sentence_vector
 
 
+def vectorize_255(sentence):
+    jpype.attachThreadToJVM()
+    morphs = Tw.morphs(sentence)
+
+    wv = gm_wor2vec_model.wv
+    w2v_vector_list = [wv[word] if word in wv else np.zeros(200) for word in morphs]
+    w2v_vector = np.mean(w2v_vector_list, axis=0)
+
+    doc2bow = [gm_dictionary.doc2bow(morphs)]
+    lda_topic_list = gm_lda_model.get_document_topics(doc2bow)[0]
+    lda_vector = np.zeros(30)
+    for topic_ix, possibility in lda_topic_list:
+        lda_vector[topic_ix] = possibility
+
+    party_vector = np.full(24, 1/24)
+    word_len_vector = [len(morphs)]
+
+    sentence_vector = np.concatenate([w2v_vector, lda_vector, party_vector, word_len_vector])
+    assert len(sentence_vector) == 255
+
+    return sentence_vector
+
+
+def get_all_meta_response(message):
+    response_vector = np.dot(vectorize_255(message), A_estimate_all_meta)
+
+    # L2 distance
+    l2_distances = np.linalg.norm(all_meta_answer_vectors - response_vector, axis=1)
+    l2_closest_idx = np.argmin(l2_distances)
+    l2_response = all_meta_answer[l2_closest_idx][0]
+
+    # Cosine distance
+    cosine_distances = [cosine(a, response_vector) for a in all_meta_answer_vectors]
+    cosine_closest_idx = np.argmin(cosine_distances)
+    cosine_response = all_meta_answer[cosine_closest_idx][0]
+
+    response = '''
+        <strong>[L2 norm]</strong><br>
+        %s
+        <br>
+        <strong>[Cosine distance]</strong><br>
+        %s
+    ''' % (l2_response, cosine_response)
+    print('Q:', message)
+    print('Predict A:', response)
+
+    return response
+
+
 def get_progressive_response(message):
-    response_vector = np.dot(vectorize(message), A_estimate_pro)
+    response_vector = np.dot(vectorize_230(message), A_estimate_pro)
 
     # L2 norm
     l2_distances = np.linalg.norm(progressive_answer_vectors - response_vector, axis=1)
@@ -164,7 +253,7 @@ def get_progressive_response(message):
 
 
 def get_conservative_response(message):
-    response_vector = np.dot(vectorize(message), A_estimate_con)
+    response_vector = np.dot(vectorize_230(message), A_estimate_con)
 
     # L2 distance
     l2_distances = np.linalg.norm(conservative_answer_vectors - response_vector, axis=1)

@@ -1,7 +1,8 @@
 <a class="item {% if request.path == '/' %} active {% endif %}" href="{% url 'main' %}">HOME</a>
-<a class="item {% if 'gyeongmin' in request.path %} active {% endif %}" href="{% url 'gyeongmin' %}">Gyeongmin</a>
-<a class="item {% if 'soonho/pro' in request.path %} active {% endif %}" href="{% url 'soonho_pro' %}">Soonho - Progressive</a>
-<a class="item {% if 'soonho/con' in request.path %} active {% endif %}" href="{% url 'soonho_con' %}">Soonho - Conservative</a>
+<a class="item {% if 'progressive' in request.path %} active {% endif %}" href="{% url 'chat_progressive' %}">Progressive Party</a>
+<a class="item {% if 'conservative' in request.path %} active {% endif %}" href="{% url 'chat_conservative' %}">Conservative Party</a>
+<a class="item {% if 'all/' in request.path %} active {% endif %}" href="{% url 'chat_all' %}">ALL</a>
+<a class="item {% if 'all_meta' in request.path %} active {% endif %}" href="{% url 'chat_all_meta' %}">ALL+</a>
 <div class="right item">
 
 </div>

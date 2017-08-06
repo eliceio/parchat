@@ -9,9 +9,9 @@ register = template.Library()
 def to_img_path(tag):
     tag_img_path_dict = {
         "user": "user",
-        "Gyeongmin": "gyeongmin",
-        "Soonho - Progressive": "soonho_pro",
-        "Soonho - Conservative": "soonho_con",
+        "Congressman": "congressman",
+        "Progressive Congressman": "progressive_congressman",
+        "Conservative Congressman": "conservative_congressman",
     }
     img_name = tag_img_path_dict[tag]
     return "/static/images/%s.png" % img_name

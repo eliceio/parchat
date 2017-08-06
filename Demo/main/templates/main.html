@@ -1,5 +1,29 @@
 {% extends "bases/base.html" %}
+{% load static %}
 
 {% block content %}
-Hello
+<h1 class="ui dividing header">Elice Project - Parchat</h1>
+<p style="font-size: 1.3rem">Korean Chat Bot using Parliament Meeting Minutes</p>
+
+<div class="ui hidden divider"></div>
+
+<h2 class="ui dividing header">Step 1: Training</h2>
+<ol class="ui list">
+    <li>Crawl parliament meeting minutes</li>
+    <li>Preprocess data, and train word2vec & LDA model</li>
+    <li>Vectorize sentences through word2vec & LDA model</li>
+    <li>Calculate best A which satisfies y = XA + epsilon</li>
+</ol>
+
+<h2 class="ui dividing header">Step 2: Application</h2>
+<ol class="ui list">
+    <li>Vectorize input sentences to 'v' using word2vec & LDA model.</li>
+    <li>y = v^T · A</li>
+    <li>Get a vector which is closest to y in vectorized sentences in dataset using L2 norm or cosine distance.</li>
+    <li>Convert the vector to a sentence and return it as a response.</li>
+</ol>
+
+<h2 class="ui dividing header">Schedule</h2>
+<img class="ui fluid image" src="{% static 'images/schedule.png' %}"/>
+
 {% endblock %}
