@@ -8,6 +8,7 @@ from konlpy.tag import Twitter
 import jpype
 import requests
 
+
 """ ALL + METADATA """
 with open('chat/static/models/all_meta_A.json', 'r') as fp:
     all_meta_answer = json.load(fp)
@@ -15,6 +16,7 @@ with open('chat/static/models/all_meta_Avec.json', 'r') as fp:
     all_meta_answer_vectors = json.load(fp)
 with open('chat/static/models/all_meta_LSTSQ.json', 'r') as fp:
     A_estimate_all_meta = json.load(fp)
+
 
 """ Progressive """
 with open('chat/static/models/pro_A.json', 'r') as fp:
@@ -24,6 +26,7 @@ with open('chat/static/models/pro_Avec.json', 'r') as fp:
 with open('chat/static/models/pro_LSTSQ.json', 'r') as fp:
     A_estimate_pro = json.load(fp)
 
+
 """ Conservative """
 with open('chat/static/models/con_A.json', 'r') as fp:
     conservative_answer = json.load(fp)
@@ -31,6 +34,7 @@ with open('chat/static/models/con_Avec.json', 'r') as fp:
     conservative_answer_vectors = json.load(fp)
 with open('chat/static/models/con_LSTSQ.json', 'r') as fp:
     A_estimate_con = json.load(fp)
+
 
 """ LDA, W2V, KoNLPy.Twitter """
 with open('chat/static/models/sh_all_nouns.json', "r") as fp:
@@ -73,8 +77,9 @@ def response_all(request):
     response_type = grab_response_type(request.POST["request_from"])
     message = request.POST["message"]
 
+    # "http://elice-guest-ds-01.koreasouth.cloudapp.azure.com:5000",
     res = requests.post(
-        "http://elice-guest-ds-01.koreasouth.cloudapp.azure.com:5000",
+        "http://143.248.140.218:5000",
         data=json.dumps({
             "msg": message
         }),
@@ -178,20 +183,20 @@ def vectorize_230(sentence):
 
 def vectorize_255(sentence):
     jpype.attachThreadToJVM()
-    morphs = Tw.morphs(sentence)
+    nouns = Tw.nouns(sentence)
 
     wv = gm_wor2vec_model.wv
-    w2v_vector_list = [wv[word] if word in wv else np.zeros(200) for word in morphs]
+    w2v_vector_list = [wv[word] if word in wv else np.zeros(200) for word in nouns]
     w2v_vector = np.mean(w2v_vector_list, axis=0)
 
-    doc2bow = [gm_dictionary.doc2bow(morphs)]
+    doc2bow = [gm_dictionary.doc2bow(nouns)]
     lda_topic_list = gm_lda_model.get_document_topics(doc2bow)[0]
     lda_vector = np.zeros(30)
     for topic_ix, possibility in lda_topic_list:
         lda_vector[topic_ix] = possibility
 
     party_vector = np.full(24, 1/24)
-    word_len_vector = [len(morphs)]
+    word_len_vector = [len(nouns)]
 
     sentence_vector = np.concatenate([w2v_vector, lda_vector, party_vector, word_len_vector])
     assert len(sentence_vector) == 255
@@ -219,6 +224,7 @@ def get_all_meta_response(message):
         <strong>[Cosine distance]</strong><br>
         %s
     ''' % (l2_response, cosine_response)
+
     print('Q:', message)
     print('Predict A:', response)
 
@@ -272,6 +278,7 @@ def get_conservative_response(message):
         <strong>[Cosine distance]</strong><br>
         %s
     ''' % (l2_response, cosine_response)
+
     print('Q:', message)
     print('Predict A:', response)
 
