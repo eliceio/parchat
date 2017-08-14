@@ -77,9 +77,8 @@ def response_all(request):
     response_type = grab_response_type(request.POST["request_from"])
     message = request.POST["message"]
 
-    # "http://elice-guest-ds-01.koreasouth.cloudapp.azure.com:5000",
     res = requests.post(
-        "http://143.248.140.218:5000",
+        "http://elice-guest-ds-01.koreasouth.cloudapp.azure.com:5000",
         data=json.dumps({
             "msg": message
         }),
@@ -196,7 +195,7 @@ def vectorize_255(sentence):
         lda_vector[topic_ix] = possibility
 
     party_vector = np.full(24, 1/24)
-    word_len_vector = [len(nouns)]
+    word_len_vector = [len(nouns) / 153]
 
     sentence_vector = np.concatenate([w2v_vector, lda_vector, party_vector, word_len_vector])
     assert len(sentence_vector) == 255
