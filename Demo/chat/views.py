@@ -8,7 +8,7 @@ from konlpy.tag import Twitter
 import jpype
 import requests
 
-
+#
 """ ALL + METADATA """
 with open('chat/static/models/all_meta_A.json', 'r') as fp:
     all_meta_answer = json.load(fp)
@@ -73,7 +73,6 @@ def chat_conservative(request):
 
 @ensure_csrf_cookie
 def response_all(request):
-    print(request.POST)
     response_type = grab_response_type(request.POST["request_from"])
     message = request.POST["message"]
 
@@ -99,8 +98,9 @@ def response_all(request):
 def response_all_meta(request):
     response_type = grab_response_type(request.POST["request_from"])
     message = request.POST["message"]
+    metrics = request.POST.getlist("metrics[]")
 
-    answer = get_all_meta_response(message)
+    answer = get_all_meta_response(message, metrics=metrics)
 
     args = {
         "user_type": response_type,
@@ -113,8 +113,9 @@ def response_all_meta(request):
 def response_progressive(request):
     response_type = grab_response_type(request.POST["request_from"])
     message = request.POST["message"]
+    metrics = request.POST.getlist("metrics[]")
 
-    answer = get_progressive_response(message)
+    answer = get_progressive_response(message, metrics=metrics)
 
     args = {
         "user_type": response_type,
@@ -127,8 +128,9 @@ def response_progressive(request):
 def response_conservative(request):
     response_type = grab_response_type(request.POST["request_from"])
     message = request.POST["message"]
+    metrics = request.POST.getlist("metrics[]")
 
-    answer = get_conservative_response(message)
+    answer = get_conservative_response(message, metrics=metrics)
 
     args = {
         "user_type": response_type,
@@ -194,7 +196,7 @@ def vectorize_255(sentence):
     for topic_ix, possibility in lda_topic_list:
         lda_vector[topic_ix] = possibility
 
-    party_vector = np.full(24, 1/24)
+    party_vector = np.full(24, 0)
     word_len_vector = [len(nouns) / 153]
 
     sentence_vector = np.concatenate([w2v_vector, lda_vector, party_vector, word_len_vector])
@@ -203,26 +205,34 @@ def vectorize_255(sentence):
     return sentence_vector
 
 
-def get_all_meta_response(message):
+def get_all_meta_response(message, metrics):
     response_vector = np.dot(vectorize_255(message), A_estimate_all_meta)
 
     # L2 distance
-    l2_distances = np.linalg.norm(all_meta_answer_vectors - response_vector, axis=1)
-    l2_closest_idx = np.argmin(l2_distances)
-    l2_response = all_meta_answer[l2_closest_idx][0]
+    if "l2" in metrics:
+        l2_distances = np.linalg.norm(all_meta_answer_vectors - response_vector, axis=1)
+        l2_closest_idx = np.argmin(l2_distances)
+        l2_response = all_meta_answer[l2_closest_idx]
 
     # Cosine distance
-    cosine_distances = [cosine(a, response_vector) for a in all_meta_answer_vectors]
-    cosine_closest_idx = np.argmin(cosine_distances)
-    cosine_response = all_meta_answer[cosine_closest_idx][0]
+    if "cosine" in metrics:
+        cosine_distances = [cosine(a, response_vector) for a in all_meta_answer_vectors]
+        cosine_closest_idx = np.argmin(cosine_distances)
+        cosine_response = all_meta_answer[cosine_closest_idx]
 
-    response = '''
-        <strong>[L2 norm]</strong><br>
-        %s
-        <br>
-        <strong>[Cosine distance]</strong><br>
-        %s
-    ''' % (l2_response, cosine_response)
+    if len(metrics) == 1:
+        if "l2" in metrics:
+            response = l2_response
+        elif "cosine" in metrics:
+            response = cosine_response
+    else:
+        response = '''
+            <strong>[L2 norm]</strong><br>
+            %s
+            <br>
+            <strong>[Cosine distance]</strong><br>
+            %s
+        ''' % (l2_response, cosine_response)
 
     print('Q:', message)
     print('Predict A:', response)
@@ -230,26 +240,35 @@ def get_all_meta_response(message):
     return response
 
 
-def get_progressive_response(message):
+def get_progressive_response(message, metrics):
     response_vector = np.dot(vectorize_230(message), A_estimate_pro)
 
     # L2 norm
-    l2_distances = np.linalg.norm(progressive_answer_vectors - response_vector, axis=1)
-    l2_closest_idx = np.argmin(l2_distances)
-    l2_response = progressive_answer[l2_closest_idx][0]
+    if "l2" in metrics:
+        l2_distances = np.linalg.norm(progressive_answer_vectors - response_vector, axis=1)
+        l2_closest_idx = np.argmin(l2_distances)
+        l2_response = progressive_answer[l2_closest_idx][0]
 
     # Cosine distance
-    cosine_distances = [cosine(a, response_vector) for a in progressive_answer_vectors]
-    cosine_closest_idx = np.argmin(cosine_distances)
-    cosine_response = progressive_answer[cosine_closest_idx][0]
+    if "cosine" in metrics:
+        cosine_distances = [cosine(a, response_vector) for a in progressive_answer_vectors]
+        cosine_closest_idx = np.argmin(cosine_distances)
+        cosine_response = progressive_answer[cosine_closest_idx][0]
 
-    response = '''
-        <strong>[L2 norm]</strong><br>
-        %s
-        <br>
-        <strong>[Cosine distance]</strong><br>
-        %s
-    ''' % (l2_response, cosine_response)
+    if len(metrics) == 1:
+        if "l2" in metrics:
+            response = l2_response
+        elif "cosine" in metrics:
+            response = cosine_response
+    else:
+        response = '''
+            <strong>[L2 norm]</strong><br>
+            %s
+            <br>
+            <strong>[Cosine distance]</strong><br>
+            %s
+        ''' % (l2_response, cosine_response)
+
 
     print('Q:', message)
     print('Predict A:', response)
@@ -257,26 +276,34 @@ def get_progressive_response(message):
     return response
 
 
-def get_conservative_response(message):
+def get_conservative_response(message, metrics):
     response_vector = np.dot(vectorize_230(message), A_estimate_con)
 
     # L2 distance
-    l2_distances = np.linalg.norm(conservative_answer_vectors - response_vector, axis=1)
-    l2_closest_idx = np.argmin(l2_distances)
-    l2_response = conservative_answer[l2_closest_idx][0]
+    if "l2" in metrics:
+        l2_distances = np.linalg.norm(conservative_answer_vectors - response_vector, axis=1)
+        l2_closest_idx = np.argmin(l2_distances)
+        l2_response = conservative_answer[l2_closest_idx][0]
 
     # Cosine distance
-    cosine_distances = [cosine(a, response_vector) for a in conservative_answer_vectors]
-    cosine_closest_idx = np.argmin(cosine_distances)
-    cosine_response = conservative_answer[cosine_closest_idx][0]
+    if "cosine" in metrics:
+        cosine_distances = [cosine(a, response_vector) for a in conservative_answer_vectors]
+        cosine_closest_idx = np.argmin(cosine_distances)
+        cosine_response = conservative_answer[cosine_closest_idx][0]
 
-    response = '''
-        <strong>[L2 norm]</strong><br>
-        %s
-        <br>
-        <strong>[Cosine distance]</strong><br>
-        %s
-    ''' % (l2_response, cosine_response)
+    if len(metrics) == 1:
+        if "l2" in metrics:
+            response = l2_response
+        elif "cosine" in metrics:
+            response = cosine_response
+    else:
+        response = '''
+            <strong>[L2 norm]</strong><br>
+            %s
+            <br>
+            <strong>[Cosine distance]</strong><br>
+            %s
+        ''' % (l2_response, cosine_response)
 
     print('Q:', message)
     print('Predict A:', response)

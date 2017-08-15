@@ -10,8 +10,13 @@
 
 {% block content %}
 <div id="comments" class="ui comments">
-    <h3 class="ui dividing header">Chatting Room</h3>
-    {% include "message.html" with user_type=request.path|to_user_type content="Hello!" %}
+    
+    <h3 class="ui dividing header">
+        Chatting Room
+        <button class="ui right floated toggle active button" value="l2">L2 norm</button>
+        <button class="ui right floated toggle button" value="cosine">Cosine</button>
+    </h3>
+    {% include "message.html" with user_type=request.path|to_user_type content="안녕하세요" %}
 </div>
 <div class="ui reply form">
     <div class="ui grid field">
@@ -21,4 +26,8 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block script %}
+<script src="{% static 'js/chat.js' %}"></script>
 {% endblock %}
