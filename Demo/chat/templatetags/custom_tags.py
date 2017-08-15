@@ -10,6 +10,7 @@ def to_img_path(tag):
     tag_img_path_dict = {
         "user": "user",
         "Congressman": "congressman",
+        "Congressman+": "congressman",
         "Progressive Congressman": "progressive_congressman",
         "Conservative Congressman": "conservative_congressman",
     }

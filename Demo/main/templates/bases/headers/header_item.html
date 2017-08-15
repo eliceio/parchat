@@ -4,5 +4,5 @@
 <a class="item {% if 'all/' in request.path %} active {% endif %}" href="{% url 'chat_all' %}">ALL</a>
 <a class="item {% if 'all_meta' in request.path %} active {% endif %}" href="{% url 'chat_all_meta' %}">ALL+</a>
 <div class="right item">
-
+    <a class="item {% if 'evaluate' in request.path %} active {% endif %}" href="{% url 'evaluate' %}">Evaluate</a>
 </div>

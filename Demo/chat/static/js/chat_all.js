@@ -50,8 +50,8 @@ function send_and_receive_message(message, metrics) {
         type: "POST",
         url: "/chat/response/all/",
         data: {
-            message: message,
-            request_from: window.location.href,
+            "message": message,
+            "request_from": window.location.href,
             "metrics[]": metrics,
         },
         success: (res) => $("#comments").append(res),

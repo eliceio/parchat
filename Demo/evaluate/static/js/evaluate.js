@@ -48,10 +48,9 @@ function construct_user_message(message) {
 function send_and_receive_message(message, metrics) {
     return $.ajax({
         type: "POST",
-        url: "/chat/response/conservative/",
+        url: "/evaluate/models/",
         data: {
             "message": message,
-            "request_from": window.location.href,
             "metrics[]": metrics,
         },
         success: (res) => $("#comments").append(res),
