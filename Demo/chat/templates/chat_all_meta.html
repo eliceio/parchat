@@ -1,5 +1,15 @@
-{% extends "chat.html" %}
+{% extends "bases/chat.html" %}
 {% load static %}
+
+
+{% block chatting-room-filter %}
+<div class="ui right aligned basic segment chatting-room-filter">
+    <h3 class="chatting-room-filter-text">Similarity Metrics: </h3>
+    <button class="ui toggle active button" value="l2">L2 norm</button>
+    <button class="ui toggle button" value="cosine">Cosine</button>
+</div>
+{% endblock %}
+
 
 {% block script %}
 {{ block.super }}

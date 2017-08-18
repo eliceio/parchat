@@ -11,7 +11,7 @@ import requests
 
 """ ALL + METADATA """
 with open('chat/static/models/all_meta_A.json', 'r') as fp:
-    all_meta_answer = json.load(fp)
+    all_meta_answers = json.load(fp)
 with open('chat/static/models/all_meta_Avec.json', 'r') as fp:
     all_meta_answer_vectors = json.load(fp)
 with open('chat/static/models/all_meta_LSTSQ.json', 'r') as fp:
@@ -20,7 +20,7 @@ with open('chat/static/models/all_meta_LSTSQ.json', 'r') as fp:
 
 """ Progressive """
 with open('chat/static/models/pro_A.json', 'r') as fp:
-    progressive_answer = json.load(fp)
+    progressive_answers = json.load(fp)
 with open('chat/static/models/pro_Avec.json', 'r') as fp:
     progressive_answer_vectors = json.load(fp)
 with open('chat/static/models/pro_LSTSQ.json', 'r') as fp:
@@ -29,7 +29,7 @@ with open('chat/static/models/pro_LSTSQ.json', 'r') as fp:
 
 """ Conservative """
 with open('chat/static/models/con_A.json', 'r') as fp:
-    conservative_answer = json.load(fp)
+    conservative_answers = json.load(fp)
 with open('chat/static/models/con_Avec.json', 'r') as fp:
     conservative_answer_vectors = json.load(fp)
 with open('chat/static/models/con_LSTSQ.json', 'r') as fp:
@@ -73,179 +73,97 @@ def chat_conservative(request):
 
 @ensure_csrf_cookie
 def echo_user(request):
-    response_type = "user"
+    model_name = "user"
     args = {
-        "user_type": response_type,
+        "model_name": model_name,
         "content": request.POST["message"]
     }
     return render(request, "message.html", args)
 
 
 @ensure_csrf_cookie
-def response_progressive(request):
-    response_type = grab_response_type(request.POST["request_from"])
+def response(request):
+    model_name, model_args = grab_model_args(request.POST["request_from"])
     message = request.POST["message"]
     metrics = request.POST.getlist("metrics[]")
 
-    response = get_progressive_response(message)
+    response = get_response(message, **model_args)
+    # response = get_all_meta_response(message)
     content = res2html(response, metrics)
 
     args = {
-        "user_type": response_type,
+        "model_name": model_name,
         "content": content,
     }
     return render(request, "message.html", args)
 
 
-def get_progressive_response(message):
-    response_vector = np.dot(vectorize_230(message), A_estimate_pro)
+def grab_model_args(request_url):
+    model_name = grab_model_name(request_url)
 
-    # L2 norm
-    l2_distances = np.linalg.norm(progressive_answer_vectors - response_vector, axis=1)
-    l2_closest_idx = np.argmin(l2_distances)
-    l2_response = progressive_answer[l2_closest_idx][0]
+    if model_name == "progressive":
+        args = {
+            "use_api": False,
+            "A_estimate": A_estimate_pro,
+            "answers": progressive_answers,
+            "answer_vectors": progressive_answer_vectors,
+            "vectorize_func": vectorize_230,
+        }
+    elif model_name == "conservative":
+        args = {
+            "use_api": False,
+            "A_estimate": A_estimate_con,
+            "answers": conservative_answers,
+            "answer_vectors": conservative_answer_vectors,
+            "vectorize_func": vectorize_230,
+        }
+    elif model_name == "all":
+        args = {
+            "use_api": True,
+            "url": "http://elice-guest-ds-01.koreasouth.cloudapp.azure.com:5000",
+        }
+    elif model_name == "all_meta":
+        args = {
+            "use_api": False,
+            "A_estimate": A_estimate_all_meta,
+            "answers": all_meta_answers,
+            "answer_vectors": all_meta_answer_vectors,
+            "vectorize_func": vectorize_255,
+        }
 
-    # Cosine distance
-    cosine_distances = [cosine(a, response_vector) for a in progressive_answer_vectors]
-    cosine_closest_idx = np.argmin(cosine_distances)
-    cosine_response = progressive_answer[cosine_closest_idx][0]
+    return model_name, args
 
-    response = {
-        "modelScore": 0.1,
-        "result": {
-            "l2": {
-                "sentence": l2_response,
-                "score": 0.2,
-            },
-            "cosine": {
-                "sentence": cosine_response,
-                "score": 0.3,
+
+def get_response(message, use_api, A_estimate=None, answers=None, answer_vectors=None, vectorize_func=None, url=None):
+    if use_api:
+        res = requests.post(
+            url,
+            data=json.dumps({
+                "msg": message
+            }),
+            headers={
+                "Content-Type": "application/json; charset=utf-8"
             }
-        }
-    }
+        )
 
-    return response
+        l2_response = res.text
+        cosine_response = res.text
+    else:
+        response_vector = np.dot(vectorize_func(message), A_estimate)
 
+        # L2 distance
+        l2_distances = np.linalg.norm(answer_vectors - response_vector, axis=1)
+        l2_closest_idx = np.argmin(l2_distances)
+        l2_response = answers[l2_closest_idx]
+        if isinstance(l2_response, list):
+            l2_response = l2_response[0]
 
-@ensure_csrf_cookie
-def response_conservative(request):
-    response_type = grab_response_type(request.POST["request_from"])
-    message = request.POST["message"]
-    metrics = request.POST.getlist("metrics[]")
-
-    response = get_conservative_response(message)
-    content = res2html(response, metrics)
-
-    args = {
-        "user_type": response_type,
-        "content": content,
-    }
-    return render(request, "message.html", args)
-
-
-def get_conservative_response(message):
-    response_vector = np.dot(vectorize_230(message), A_estimate_con)
-
-    # L2 distance
-    l2_distances = np.linalg.norm(conservative_answer_vectors - response_vector, axis=1)
-    l2_closest_idx = np.argmin(l2_distances)
-    l2_response = conservative_answer[l2_closest_idx][0]
-
-    # Cosine distance
-    cosine_distances = [cosine(a, response_vector) for a in conservative_answer_vectors]
-    cosine_closest_idx = np.argmin(cosine_distances)
-    cosine_response = conservative_answer[cosine_closest_idx][0]
-
-    response = {
-        "modelScore": 0.1,
-        "result": {
-            "l2": {
-                "sentence": l2_response,
-                "score": 0.2,
-            },
-            "cosine": {
-                "sentence": cosine_response,
-                "score": 0.3,
-            }
-        }
-    }
-
-    return response
-
-
-@ensure_csrf_cookie
-def response_all(request):
-    response_type = grab_response_type(request.POST["request_from"])
-    message = request.POST["message"]
-    metrics = request.POST.getlist("metrics[]")
-
-    response = get_all_response(message)
-    content = res2html(response, metrics)
-
-    args = {
-        "user_type": response_type,
-        "content": content,
-    }
-    return render(request, "message.html", args)
-
-
-def get_all_response(message):
-    res = requests.post(
-        "http://elice-guest-ds-01.koreasouth.cloudapp.azure.com:5000",
-        data=json.dumps({
-            "msg": message
-        }),
-        headers={
-            "Content-Type": "application/json; charset=utf-8"
-        }
-    )
-    answer = res.text
-
-    response = {
-        "modelScore": 0.1,
-        "result": {
-            "l2": {
-                "sentence": answer,
-                "score": 0.2,
-            },
-            "cosine": {
-                "sentence": answer,
-                "score": 0.3,
-            }
-        }
-    }
-
-    return response
-
-
-@ensure_csrf_cookie
-def response_all_meta(request):
-    response_type = grab_response_type(request.POST["request_from"])
-    message = request.POST["message"]
-    metrics = request.POST.getlist("metrics[]")
-
-    response = get_all_meta_response(message)
-    content = res2html(response, metrics)
-
-    args = {
-        "user_type": response_type,
-        "content": content,
-    }
-    return render(request, "message.html", args)
-
-
-def get_all_meta_response(message):
-    response_vector = np.dot(vectorize_255(message), A_estimate_all_meta)
-
-    # L2 distance
-    l2_distances = np.linalg.norm(all_meta_answer_vectors - response_vector, axis=1)
-    l2_closest_idx = np.argmin(l2_distances)
-    l2_response = all_meta_answer[l2_closest_idx]
-
-    # Cosine distance
-    cosine_distances = [cosine(a, response_vector) for a in all_meta_answer_vectors]
-    cosine_closest_idx = np.argmin(cosine_distances)
-    cosine_response = all_meta_answer[cosine_closest_idx]
+        # Cosine distance
+        cosine_distances = [cosine(a, response_vector) for a in answer_vectors]
+        cosine_closest_idx = np.argmin(cosine_distances)
+        cosine_response = answers[cosine_closest_idx]
+        if isinstance(cosine_response, list):
+            cosine_response = cosine_response[0]
 
     response = {
         "modelScore": 0.1,
@@ -282,18 +200,18 @@ def res2html(response, metrics):
     return html
 
 
-def grab_response_type(string):
-    response_type_dict = {
-        "progressive": "Progressive Congressman",
-        "conservative": "Conservative Congressman",
-        "all": "Congressman",
-        "all_meta": "Congressman+",
-    }
+def grab_model_name(string):
+    response_types = [
+        "progressive",
+        "conservative",
+        "all_meta",
+        "all",
+    ]
 
-    for type in response_type_dict:
-        if type in string:
-            return response_type_dict[type]
-    return "Congressman"
+    for response_type in response_types:
+        if response_type in string:
+            return response_type
+    return "all"
 
 
 def vectorize_230(sentence):

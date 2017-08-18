@@ -1,9 +1,10 @@
 from django.shortcuts import render
 from django.views.decorators.csrf import ensure_csrf_cookie
 
-from chat.views import get_progressive_response, get_conservative_response, get_all_response, get_all_meta_response
+from chat.views import grab_model_args, get_response
 
 
+@ensure_csrf_cookie
 def evaluate(request):
     return render(request, "evaluate.html")
 
@@ -11,34 +12,18 @@ def evaluate(request):
 @ensure_csrf_cookie
 def evaluate_models(request):
     message = request.POST["message"]
-    # response_types = request.POST["models[]"]
-    response_types = [
-        "Progressive Congressman",
-        "Conservative Congressman",
-        "Congressman",
-        "Congressman+",
-    ]
+    model_names = request.POST.getlist("models[]")
     metrics = request.POST.getlist("metrics[]")
 
-    response_progressive = get_progressive_response(message)
-    response_conservative = get_conservative_response(message)
-    response_all = get_all_response(message)
-    response_all_meta = get_progressive_response(message)
-
-    content_progressive = res2html(response_progressive, metrics)
-    content_conservative = res2html(response_conservative, metrics)
-    content_all = res2html(response_all, metrics)
-    content_all_meta = res2html(response_all_meta, metrics)
-
-    contents = [
-        content_progressive,
-        content_conservative,
-        content_all,
-        content_all_meta,
-    ]
+    contents = []
+    for model_name in model_names:
+        model_name, model_args = grab_model_args(model_name)
+        response = get_response(message, **model_args)
+        response_html = res2html(response, metrics)
+        contents.append(response_html)
 
     args = {
-        "lst": zip(response_types, contents)
+        "lst": zip(model_names, contents)
     }
     return render(request, "messages.html", args)
 

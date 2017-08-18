@@ -13,3 +13,16 @@
 #send-btn {
     padding: 2.2rem 0;
 }
+
+.chatting-room-filter {
+    padding: 0 !important;
+}
+
+.chatting-room-header {
+    margin-top: 0 !important;
+}
+
+.chatting-room-filter-text {
+    display: inline !important;
+    margin-left: 2vh;
+}

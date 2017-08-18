@@ -1,5 +1,20 @@
-{% extends "chat.html" %}
+{% extends "bases/chat.html" %}
 {% load static %}
+
+
+{% block chatting-room-filter %}
+<div class="ui right aligned basic segment chatting-room-filter">
+    <h3 class="chatting-room-filter-text">Models: </h3>
+    <button class="ui toggle active button models" value="progressive">Progressive</button>
+    <button class="ui toggle active button models" value="conservative">Conservative</button>
+    <button class="ui toggle active button models" value="all">ALL</button>
+    <button class="ui toggle active button models" value="all_meta">ALL+META</button>
+    
+    <h3 class="chatting-room-filter-text">Similarity Metrics: </h3>
+    <button class="ui toggle active button metrics" value="l2">L2 norm</button>
+    <button class="ui toggle button metrics" value="cosine">Cosine</button>
+</div>
+{% endblock %}
 
 {% block script %}
 {{ block.super }}

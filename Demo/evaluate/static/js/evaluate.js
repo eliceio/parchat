@@ -19,9 +19,16 @@ $(function() {
 
 function chat() {
     var metrics = [];
-    $(".ui.toggle.button.active").each((i, btn) => metrics.push(btn.value))
+    $(".ui.toggle.button.active.metrics").each((i, btn) => metrics.push(btn.value))
     if (metrics.length === 0) {
-        alert("최소 한 개의 metric을 골라주세요(L2 norm, Cosine similarity)");
+        alert("최소 한 개의 similarity metric을 골라주세요");
+        return;
+    }
+
+    var models = [];
+    $(".ui.toggle.button.active.models").each((i, btn) => models.push(btn.value))
+    if (models.length === 0) {
+        alert("최소 한 개의 model을 골라주세요");
         return;
     }
 
@@ -30,7 +37,7 @@ function chat() {
     $("#send-msg").focus();
     if (message.length > 0) {
         construct_user_message(message)
-            .then(() => send_and_receive_message(message, metrics));
+            .then(() => send_and_receive_message(message, metrics, models));
     }
 }
 
@@ -45,13 +52,14 @@ function construct_user_message(message) {
     });
 }
 
-function send_and_receive_message(message, metrics) {
+function send_and_receive_message(message, metrics, models) {
     return $.ajax({
         type: "POST",
         url: "/evaluate/models/",
         data: {
             "message": message,
             "metrics[]": metrics,
+            "models[]": models,
         },
         success: (res) => $("#comments").append(res),
     });
