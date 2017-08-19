@@ -1,0 +1,11 @@
+.ui.button.toggle.active.models {
+    background-color: #4183D7 !important;
+}
+
+.ui.button.toggle.active.scores {
+    background-color: #ffd700 !important;
+}
+
+.ui.button.toggle.active.metrics {
+    background-color: #2ecc71 !important;
+}

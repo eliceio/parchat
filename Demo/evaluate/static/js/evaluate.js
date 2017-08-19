@@ -1,4 +1,6 @@
 $(function() {
+    $('.ui.button.toggle').state();
+
     var csrftoken = getCookie('csrftoken');
     $.ajaxSetup({
         beforeSend: function(xhr, settings) {
@@ -32,12 +34,15 @@ function chat() {
         return;
     }
 
+    var scores = [];
+    $(".ui.toggle.button.active.scores").each((i, btn) => scores.push(btn.value))
+
     var message = $.trim($("#send-msg").val());
     $("#send-msg").val("");
     $("#send-msg").focus();
     if (message.length > 0) {
         construct_user_message(message)
-            .then(() => send_and_receive_message(message, metrics, models));
+            .then(() => send_and_receive_message(message, metrics, models, scores));
     }
 }
 
@@ -52,7 +57,7 @@ function construct_user_message(message) {
     });
 }
 
-function send_and_receive_message(message, metrics, models) {
+function send_and_receive_message(message, metrics, models, scores) {
     return $.ajax({
         type: "POST",
         url: "/evaluate/models/",
@@ -60,6 +65,7 @@ function send_and_receive_message(message, metrics, models) {
             "message": message,
             "metrics[]": metrics,
             "models[]": models,
+            "scores[]": scores,
         },
         success: (res) => $("#comments").append(res),
     });

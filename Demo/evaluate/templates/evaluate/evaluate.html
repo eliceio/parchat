@@ -1,14 +1,24 @@
 {% extends "bases/chat.html" %}
 {% load static %}
 
+{% block css %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/evaluate.css' %}">
+{% endblock %}
 
 {% block chatting-room-filter %}
 <div class="ui right aligned basic segment chatting-room-filter">
     <h3 class="chatting-room-filter-text">Models: </h3>
     <button class="ui toggle active button models" value="progressive">Progressive</button>
     <button class="ui toggle active button models" value="conservative">Conservative</button>
-    <button class="ui toggle active button models" value="all">ALL</button>
-    <button class="ui toggle active button models" value="all_meta">ALL+META</button>
+    <button class="ui toggle active button models" value="neutral1">Neutral1</button>
+    <button class="ui toggle active button models" value="neutral2">Neutral2</button>
+    <button class="ui toggle active button models" value="neutral2_meta">Neutral2+META</button>
+</div>
+<div class="ui right aligned basic segment chatting-room-filter">
+    <h3 class="chatting-room-filter-text">Scores: </h3>
+    <button class="ui toggle active button scores" value="model">Model</button>
+    <button class="ui toggle active button scores" value="sentence">Sentence</button>
     
     <h3 class="chatting-room-filter-text">Similarity Metrics: </h3>
     <button class="ui toggle active button metrics" value="l2">L2 norm</button>

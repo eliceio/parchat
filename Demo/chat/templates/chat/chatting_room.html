@@ -1,5 +1,6 @@
 {% extends "bases/chat.html" %}
 {% load static %}
+{% load custom_tags %}
 
 
 {% block chatting-room-filter %}
@@ -8,10 +9,4 @@
     <button class="ui toggle active button" value="l2">L2 norm</button>
     <button class="ui toggle button" value="cosine">Cosine</button>
 </div>
-{% endblock %}
-
-
-{% block script %}
-{{ block.super }}
-<script src="{% static 'js/chat_conservative.js' %}"></script>
 {% endblock %}

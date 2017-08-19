@@ -9,16 +9,18 @@ tag_img_path_dict = {
     "user": "user",
     "progressive": "progressive_congressman",
     "conservative": "conservative_congressman",
-    "all": "congressman",
-    "all_meta": "congressman",
+    "neutral1": "congressman",
+    "neutral2": "congressman",
+    "neutral2_meta": "congressman",
 }
 
 model_user_name_dict = {
     "user": "User",
     "progressive": "Progressive Congressman",
     "conservative": "Conservative Congressman",
-    "all": "Congressman",
-    "all_meta": "Congressman+",
+    "neutral1": "Congressman",
+    "neutral2": "Congressman",
+    "neutral2_meta": "Congressman+",
 }
 
 

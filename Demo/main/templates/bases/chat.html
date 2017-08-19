@@ -4,6 +4,7 @@
 
 
 {% block css %}
+{{ block.super }}
 <link rel="stylesheet" href="{% static 'css/chat.css' %}">
 {% endblock %}
 
@@ -15,7 +16,7 @@
     <h3 class="ui dividing header chatting-room-header">
         Chatting Room
     </h3>
-    {% include "message.html" with model_name=request.path|to_model_name content="안녕하세요" %}
+    {% include "chat/message.html" with model_name=request.path|to_model_name content="안녕하세요" %}
 </div>
 <div class="ui reply form">
     <div class="ui grid field">
@@ -29,5 +30,6 @@
 
 
 {% block script %}
+{{ block.super }}
 <script src="{% static 'js/chat.js' %}"></script>
 {% endblock %}

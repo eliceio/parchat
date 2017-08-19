@@ -1,4 +1,6 @@
 $(function() {
+    $('.ui.button.toggle').state();
+    
     var csrftoken = getCookie('csrftoken');
     $.ajaxSetup({
         beforeSend: function(xhr, settings) {
