@@ -16,5 +16,6 @@ requests==2.18.2
 scipy==0.19.1
 six==1.10.0
 smart-open==1.5.3
+tqdm==4.15.0
 urllib3==1.22
 whitenoise==3.3.0

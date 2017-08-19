@@ -31,6 +31,7 @@ def evaluate_models(request):
 
 def res2html(response, metrics, scores):
     model_score = response["modelScore"]
+
     if len(metrics) == 1:
         metric = metrics[0]
         score = response["result"][metric]["score"]
@@ -65,7 +66,6 @@ def res2html(response, metrics, scores):
                 <strong>[Cosine distance]</strong><br>
                 &ensp;&ensp;%s<br>
             ''' % (l2_answer, cosine_answer)
-
 
     if "model" in scores:
         html = """
