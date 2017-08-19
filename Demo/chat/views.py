@@ -95,9 +95,7 @@ def grab_model_args(request_url, message):
     elif model_name == "neutral2":
         args = {
             "use_api": True,
-            "url": "http://elice-guest-ds-01.koreasouth.cloudapp.azure.com:5000",
-            # stub
-            "vectorize_func": vectorize_230,
+            "url": "http://143.248.140.218:23457",
         }
     elif model_name == "neutral2_meta":
         q_closest_vec = hb_closest_q(message, neu2_meta_A_estimate)
@@ -132,11 +130,7 @@ def get_response(message, use_api, A_estimate=None, answers=None, answer_vectors
             }
         )
 
-        l2_response = res.text
-        cosine_response = res.text
-        model_score = -1
-        l2_score = -1
-        cosine_score = -1
+        return json.loads(res.text)
     else:
         response_vector = np.dot(vectorize_func(message), A_estimate)
 
