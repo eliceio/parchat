@@ -51,7 +51,7 @@ function construct_user_message(message) {
         type: "POST",
         url: "/chat/echo_user/",
         data: {
-            message: message
+            "message": message
         },
         success: (res) => $("#comments").append(res),
     });

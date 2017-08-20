@@ -7,20 +7,22 @@ register = template.Library()
 
 tag_img_path_dict = {
     "user": "user",
-    "progressive": "progressive_congressman",
-    "conservative": "conservative_congressman",
-    "neutral1": "congressman",
-    "neutral2": "congressman",
-    "neutral2_meta": "congressman",
+    "progressive": "progressive_congressperson",
+    "conservative": "conservative_congressperson",
+    "neutral1": "neutral_congressperson",
+    "neutral2": "neutral_congressperson",
+    "neutral2_meta": "neutral_congressperson",
+    "congressperson": "congressperson",
 }
 
 model_user_name_dict = {
     "user": "User",
-    "progressive": "Progressive Congressman",
-    "conservative": "Conservative Congressman",
-    "neutral1": "Congressman",
-    "neutral2": "Congressman",
-    "neutral2_meta": "Congressman+",
+    "progressive": "Progressive Congressperson",
+    "conservative": "Conservative Congressperson",
+    "neutral1": "Neutral Congressperson(1)",
+    "neutral2": "Neutral Congressperson(2)",
+    "neutral2_meta": "Neutral+META Congressperson",
+    "congressperson": "Congressperson",
 }
 
 
@@ -40,5 +42,5 @@ def to_user_name(string):
     for model_name, user_name in model_user_name_dict.items():
         if string in model_name:
             return user_name
-    return "Congressman"
+    return "Congressperson"
 
