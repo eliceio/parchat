@@ -278,7 +278,6 @@ def sh_get_topic(message):
         return str(max_part)
 
 
-
 """ Progressive """
 with open('chat/static/models/pro_A_part.json', 'r') as fp:
     pro_answers = json.load(fp)
@@ -326,41 +325,48 @@ gm_lda_model = gensim.models.ldamodel.LdaModel.load('chat/static/models/gm_LDA.m
 
 Tw = Twitter()
 
+
 """ Model Score """
-with open("chat/static/models/qa_sentence_pair.json", "r") as fp:
-    qa_sentence_pair_dict = json.load(fp)
-    qa_sentence_pair_dict = dict(list(qa_sentence_pair_dict.items())[:10000])
-
-    sh_Q_vec = [vectorize_230(sentence) for sentence in tqdm(qa_sentence_pair_dict.keys())]
-    sh_Q_topic = [sh_get_topic(sentence) for sentence in tqdm(qa_sentence_pair_dict.keys())]
-    sh_A_vec = [vectorize_230(sentence) for sentence in tqdm(qa_sentence_pair_dict.values())]
-
-    # Progressive, Conservative, Neutral1
-    pro_model_score = 0
-    con_model_score = 0
-    neu1_model_score = 0
-    for q_vec, q_topic, a_vec in tqdm(zip(sh_Q_vec, sh_Q_topic, sh_A_vec)):
-        pro_a_estimate_vec = np.dot(q_vec, pro_A_estimate[q_topic])
-        con_a_estimate_vec = np.dot(q_vec, con_A_estimate[q_topic])
-        neu1_a_estimate_vec = np.dot(q_vec, neu1_A_estimate[q_topic])
-
-        pro_model_score += np.sqrt(np.mean(np.square(pro_a_estimate_vec - a_vec)))
-        con_model_score += np.sqrt(np.mean(np.square(con_a_estimate_vec - a_vec)))
-        neu1_model_score += np.sqrt(np.mean(np.square(neu1_a_estimate_vec - a_vec)))
-    pro_model_score /= len(qa_sentence_pair_dict)
-    con_model_score /= len(qa_sentence_pair_dict)
-    neu1_model_score /= len(qa_sentence_pair_dict)
-
-    # Neutral2 + Metadata
-    hb_Q_vec = [vectorize_255(sentence) for sentence in tqdm(qa_sentence_pair_dict.keys())]
-    hb_A_vec = [vectorize_255(sentence) for sentence in tqdm(qa_sentence_pair_dict.values())]
-    neu2_meta_error = hb_A_vec - np.dot(hb_Q_vec, neu2_meta_A_estimate)
-    neu2_meta_model_score = np.mean(np.sqrt(np.mean(np.square(neu2_meta_error), axis=-1)))
-
-    print(pro_model_score)
-    print(con_model_score)
-    print(neu1_model_score)
-    print(neu2_meta_model_score)
+pro_model_score = 9996018503.12
+con_model_score = 5594089327.92
+neu1_model_score = 236622379.774
+neu2_meta_model_score = 0.465340291272
+# with open("chat/static/models/qa_sentence_pair.json", "r") as fp:
+#     qa_sentence_pair_dict = json.load(fp)
+#     # qa_sentence_pair_dict = dict(list(qa_sentence_pair_dict.items())[:10000])
+#
+#     sh_Q_vec = [vectorize_230(sentence) for sentence in tqdm(qa_sentence_pair_dict.keys())]
+#     sh_Q_topic = [sh_get_topic(sentence) for sentence in tqdm(qa_sentence_pair_dict.keys())]
+#     sh_A_vec = [vectorize_230(sentence) for sentence in tqdm(qa_sentence_pair_dict.values())]
+#
+#     # Progressive, Conservative, Neutral1
+#     pro_model_score = 0
+#     con_model_score = 0
+#     neu1_model_score = 0
+#     for q_vec, q_topic, a_vec in tqdm(zip(sh_Q_vec, sh_Q_topic, sh_A_vec)):
+#         pro_a_estimate_vec = np.dot(q_vec, pro_A_estimate[q_topic])
+#         con_a_estimate_vec = np.dot(q_vec, con_A_estimate[q_topic])
+#         neu1_a_estimate_vec = np.dot(q_vec, neu1_A_estimate[q_topic])
+#
+#         pro_model_score += np.sqrt(np.mean(np.square(pro_a_estimate_vec - a_vec)))
+#         con_model_score += np.sqrt(np.mean(np.square(con_a_estimate_vec - a_vec)))
+#         neu1_model_score += np.sqrt(np.mean(np.square(neu1_a_estimate_vec - a_vec)))
+#
+#     pro_model_score /= len(qa_sentence_pair_dict)
+#     con_model_score /= len(qa_sentence_pair_dict)
+#     neu1_model_score /= len(qa_sentence_pair_dict)
+#
+#     # Neutral2 + Metadata
+#     hb_Q_vec = [vectorize_255(sentence) for sentence in tqdm(qa_sentence_pair_dict.keys())]
+#     hb_A_vec = [vectorize_255(sentence) for sentence in tqdm(qa_sentence_pair_dict.values())]
+#     neu2_meta_error = hb_A_vec - np.dot(hb_Q_vec, neu2_meta_A_estimate)
+#     neu2_meta_model_score = np.mean(np.sqrt(np.mean(np.square(neu2_meta_error), axis=-1)))
+#
+#     print()
+#     print(pro_model_score)
+#     print(con_model_score)
+#     print(neu1_model_score)
+#     print(neu2_meta_model_score)
 
 
 boilerplate = {
