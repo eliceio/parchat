@@ -47,24 +47,41 @@ def response(request):
 def grab_model_args(request_url, message):
     def sh_closest_a(message, A_estimate):
         q_vec = vectorize_230(message)
-        q_closest_idx = np.argmin(np.linalg.norm(sh_Q_vec - q_vec, axis=-1))
-        q_closest_vec = sh_Q_vec[q_closest_idx]
-        q_closest_topic = sh_Q_topic[q_closest_idx]
-        a_closest_vec = np.dot(q_closest_vec, A_estimate[q_closest_topic])
-        return a_closest_vec
+
+        # L2 norm
+        l2_q_closest_idx = np.argmin(np.linalg.norm(sh_Q_vec - q_vec, axis=-1))
+        l2_q_closest_vec = sh_Q_vec[l2_q_closest_idx]
+        l2_q_closest_topic = sh_Q_topic[l2_q_closest_idx]
+        l2_a_closest_vec = np.dot(l2_q_closest_vec, A_estimate[l2_q_closest_topic])
+
+        # Cosine
+        cosine_q_closest_idx = np.argmin([cosine(s_v, q_vec) for s_v in sh_Q_vec])
+        cosine_q_closest_vec = sh_Q_vec[cosine_q_closest_idx]
+        cosine_q_closest_topic = sh_Q_topic[cosine_q_closest_idx]
+        cosine_a_closest_vec = np.dot(cosine_q_closest_vec, A_estimate[cosine_q_closest_topic])
+
+        return l2_a_closest_vec, cosine_a_closest_vec
 
     def hb_closest_a(message, A_estimate):
         q_vec = vectorize_255(message)
-        q_closest_idx = np.argmin(np.linalg.norm(hb_Q_vec - q_vec, axis=-1))
-        q_closest_vec = hb_Q_vec[q_closest_idx]
-        a_closest_vec = np.dot(q_closest_vec, A_estimate)
-        return a_closest_vec
+
+        # L2 norm
+        l2_q_closest_idx = np.argmin(np.linalg.norm(hb_Q_vec - q_vec, axis=-1))
+        l2_q_closest_vec = hb_Q_vec[l2_q_closest_idx]
+        l2_a_closest_vec = np.dot(l2_q_closest_vec, A_estimate)
+
+        # L2 norm
+        cosine_q_closest_idx = np.argmin([cosine(h_v, q_vec) for h_v in hb_Q_vec])
+        cosine_q_closest_vec = hb_Q_vec[cosine_q_closest_idx]
+        cosine_a_closest_vec = np.dot(cosine_q_closest_vec, A_estimate)
+
+        return l2_a_closest_vec, cosine_a_closest_vec
 
     model_name = grab_model_name(request_url)
 
     if model_name == "progressive":
         topic = sh_get_topic(message)
-        a_closest_vec = sh_closest_a(message, pro_A_estimate)
+        l2_a_closest_vec, cosine_a_closest_vec = sh_closest_a(message, pro_A_estimate)
         args = {
             "use_api": False,
             "A_estimate": pro_A_estimate[topic],
@@ -72,11 +89,12 @@ def grab_model_args(request_url, message):
             "answer_vectors": pro_answer_vectors[topic],
             "vectorize_func": vectorize_230,
             "model_score": pro_model_score,
-            "a_closest_vec": a_closest_vec,
+            "l2_a_closest_vec": l2_a_closest_vec,
+            "cosine_a_closest_vec": cosine_a_closest_vec,
         }
     elif model_name == "conservative":
         topic = sh_get_topic(message)
-        a_closest_vec = sh_closest_a(message, con_A_estimate)
+        l2_a_closest_vec, cosine_a_closest_vec = sh_closest_a(message, con_A_estimate)
         args = {
             "use_api": False,
             "A_estimate": con_A_estimate[topic],
@@ -84,11 +102,12 @@ def grab_model_args(request_url, message):
             "answer_vectors": con_answer_vectors[topic],
             "vectorize_func": vectorize_230,
             "model_score": con_model_score,
-            "a_closest_vec": a_closest_vec,
+            "l2_a_closest_vec": l2_a_closest_vec,
+            "cosine_a_closest_vec": cosine_a_closest_vec,
         }
     elif model_name == "neutral1":
         topic = sh_get_topic(message)
-        a_closest_vec = sh_closest_a(message, neu1_A_estimate)
+        l2_a_closest_vec, cosine_a_closest_vec = sh_closest_a(message, neu1_A_estimate)
         args = {
             "use_api": False,
             "A_estimate": neu1_A_estimate[topic],
@@ -96,7 +115,8 @@ def grab_model_args(request_url, message):
             "answer_vectors": neu1_answer_vectors[topic],
             "vectorize_func": vectorize_230,
             "model_score": neu1_model_score,
-            "a_closest_vec": a_closest_vec,
+            "l2_a_closest_vec": l2_a_closest_vec,
+            "cosine_a_closest_vec": cosine_a_closest_vec,
         }
     elif model_name == "neutral2":
         args = {
@@ -104,7 +124,7 @@ def grab_model_args(request_url, message):
             "url": "http://143.248.140.218:23457",
         }
     elif model_name == "neutral2_meta":
-        a_closest_vec = hb_closest_a(message, neu2_meta_A_estimate)
+        l2_a_closest_vec, cosine_a_closest_vec = hb_closest_a(message, neu2_meta_A_estimate)
         args = {
             "use_api": False,
             "A_estimate": neu2_meta_A_estimate,
@@ -112,13 +132,14 @@ def grab_model_args(request_url, message):
             "answer_vectors": neu2_meta_answer_vectors,
             "vectorize_func": vectorize_255,
             "model_score": neu2_meta_model_score,
-            "a_closest_vec": a_closest_vec,
+            "l2_a_closest_vec": l2_a_closest_vec,
+            "cosine_a_closest_vec": cosine_a_closest_vec,
         }
 
     return model_name, args
 
 
-def get_response(message, use_api, A_estimate=None, answers=None, answer_vectors=None, vectorize_func=None, url=None, model_score=None, a_closest_vec=None):
+def get_response(message, use_api, A_estimate=None, answers=None, answer_vectors=None, vectorize_func=None, url=None, model_score=None, l2_a_closest_vec=None, cosine_a_closest_vec=None):
     if message in boilerplate:
         l2_response = boilerplate[message]
         cosine_response = boilerplate[message]
@@ -149,7 +170,8 @@ def get_response(message, use_api, A_estimate=None, answers=None, answer_vectors
 
         # L2 score
         l2_response_vec = answer_vectors[l2_closest_idx]
-        l2_score = np.linalg.norm(a_closest_vec - l2_response_vec)
+        l2_score = 1 - cosine(l2_a_closest_vec, l2_response_vec)
+        l2_score = (l2_score + 1) * 50
 
         # Cosine distance
         cosine_distances = [cosine(a, response_vector) for a in answer_vectors]
@@ -160,7 +182,8 @@ def get_response(message, use_api, A_estimate=None, answers=None, answer_vectors
 
         # Cosine score
         cosine_response_vec = answer_vectors[cosine_closest_idx]
-        cosine_score = np.linalg.norm(a_closest_vec - cosine_response_vec)
+        cosine_score = 1 - cosine(cosine_a_closest_vec, cosine_response_vec)
+        cosine_score = (cosine_score + 1) * 50
 
     response = {
         "modelScore": model_score,
@@ -348,57 +371,44 @@ with open("chat/static/models/hb_Q_vec.json", "r") as f:
     hb_Q_vec = json.load(f)
 with open("chat/static/models/hb_A_vec.json", "r") as f:
     hb_A_vec = json.load(f)
+
+
+""" Model Score """
+pro_model_score = 76.08
+con_model_score = 76.17
+neu1_model_score = 81.19
+neu2_meta_model_score = 65.73
+
+
 # from tqdm import tqdm
 # with open("chat/static/models/qa_sentence_pair.json", "r") as fp:
 #     qa_sentence_pair_dict = json.load(fp)
 #     qa_sentence_pair_dict = dict(list(qa_sentence_pair_dict.items())[:10000])
-#
-#     sh_Q_vec = [vectorize_230(sentence).tolist() for sentence in tqdm(qa_sentence_pair_dict.keys())]
-#     sh_Q_topic = [sh_get_topic(sentence) for sentence in tqdm(qa_sentence_pair_dict.keys())]
 #     sh_A_vec = [vectorize_230(sentence).tolist() for sentence in tqdm(qa_sentence_pair_dict.values())]
-#     hb_Q_vec = [vectorize_255(sentence).tolist() for sentence in tqdm(qa_sentence_pair_dict.keys())]
-#     hb_A_vec = [vectorize_255(sentence).tolist() for sentence in tqdm(qa_sentence_pair_dict.values())]
-#     with open("chat/static/models/sh_Q_vec.json", "w") as f:
-#         json.dump(sh_Q_vec, f)
-#     with open("chat/static/models/sh_Q_topic.json", "w") as f:
-#         json.dump(sh_Q_topic, f)
-#     with open("chat/static/models/sh_A_vec.json", "w") as f:
-#         json.dump(sh_A_vec, f)
-#     with open("chat/static/models/hb_Q_vec.json", "w") as f:
-#         json.dump(hb_Q_vec, f)
-#     with open("chat/static/models/hb_A_vec.json", "w") as f:
-#         json.dump(hb_A_vec, f)
-
-
-""" Model Score """
-pro_model_score = 9996018503.12
-con_model_score = 5594089327.92
-neu1_model_score = 236622379.774
-neu2_meta_model_score = 0.465340291272
-
-# with open("chat/static/models/sh_A_vec.json", "w") as f:
-#     sh_A_vec = json.load(f)
-
+#
 # # Progressive, Conservative, Neutral1
-# pro_model_score = 0
-# con_model_score = 0
-# neu1_model_score = 0
+# pro_model_scores = []
+# con_model_scores = []
+# neu1_model_scores = []
 # for q_vec, q_topic, a_vec in tqdm(zip(sh_Q_vec, sh_Q_topic, sh_A_vec)):
 #     pro_a_estimate_vec = np.dot(q_vec, pro_A_estimate[q_topic])
 #     con_a_estimate_vec = np.dot(q_vec, con_A_estimate[q_topic])
 #     neu1_a_estimate_vec = np.dot(q_vec, neu1_A_estimate[q_topic])
 #
-#     pro_model_score += np.sqrt(np.mean(np.square(pro_a_estimate_vec - a_vec)))
-#     con_model_score += np.sqrt(np.mean(np.square(con_a_estimate_vec - a_vec)))
-#     neu1_model_score += np.sqrt(np.mean(np.square(neu1_a_estimate_vec - a_vec)))
+#     pro_model_scores.append(1 - cosine(pro_a_estimate_vec, a_vec))
+#     con_model_scores.append(1 - cosine(con_a_estimate_vec, a_vec))
+#     neu1_model_scores.append(1 - cosine(neu1_a_estimate_vec, a_vec))
 #
-# pro_model_score /= len(qa_sentence_pair_dict)
-# con_model_score /= len(qa_sentence_pair_dict)
-# neu1_model_score /= len(qa_sentence_pair_dict)
+# pro_model_score = (np.mean(pro_model_scores) + 1) * 50
+# con_model_score = (np.mean(con_model_scores) + 1) * 50
+# neu1_model_score = (np.mean(neu1_model_scores) + 1) * 50
 #
 # # Neutral2 + Metadata
-# neu2_meta_error = hb_A_vec - np.dot(hb_Q_vec, neu2_meta_A_estimate)
-# neu2_meta_model_score = np.mean(np.sqrt(np.mean(np.square(neu2_meta_error), axis=-1)))
+# hb_A_estimate_vec = np.dot(hb_Q_vec, neu2_meta_A_estimate)
+# neu2_meta_model_scores = []
+# for a_vec, a_estimate_vec in tqdm(zip(hb_A_vec, hb_A_estimate_vec)):
+#     neu2_meta_model_scores.append(1 - cosine(a_vec, a_estimate_vec))
+# neu2_meta_model_score = (np.mean(neu2_meta_model_scores) + 1) * 50
 #
 # print()
 # print(pro_model_score)

@@ -39,7 +39,7 @@ def res2html(response, metrics, scores):
 
         if "sentence" in scores:
             html = """
-                <strong>Sentence Score</strong>: %f<br>
+                <strong>Sentence Score</strong>: %2.2f점<br>
                 %s<br>
             """ % (score, answer)
         else:
@@ -53,10 +53,10 @@ def res2html(response, metrics, scores):
         if "sentence" in scores:
             html = '''
                 <strong>[L2 norm]</strong><br>
-                &ensp;&ensp;<strong>Sentence Score</strong>: %f<br>
+                &ensp;&ensp;<strong>Sentence Score</strong>: %2.2f점<br>
                 &ensp;&ensp;%s<br>
                 <strong>[Cosine distance]</strong><br>
-                &ensp;&ensp;<strong>Sentence Score</strong>: %f<br>
+                &ensp;&ensp;<strong>Sentence Score</strong>: %2.2f점<br>
                 &ensp;&ensp;%s<br>
             ''' % (l2_score, l2_answer, cosine_score, cosine_answer)
         else:
@@ -69,7 +69,7 @@ def res2html(response, metrics, scores):
 
     if "model" in scores:
         html = """
-            <strong>Model Score</strong>: %f<br>
+            <strong>Model Score</strong>: %2.2f점<br>
             %s
         """ % (model_score, html)
 
