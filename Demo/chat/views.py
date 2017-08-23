@@ -220,7 +220,8 @@ def vectorize_230(sentence):
     w2v_vector_list = [wv[word] if word in wv else np.zeros(200) for word in morphs]
     w2v_vector = np.mean(w2v_vector_list, axis=0)
 
-    doc2bow = [sh_dictionary.doc2bow(morphs)]
+    nouns = Tw.nouns(sentence)
+    doc2bow = [sh_dictionary.doc2bow(nouns)]
     lda_topic_list = sh_lda_model.get_document_topics(doc2bow)[0]
     lda_vector = np.zeros(30)
     for topic_ix, possibility in lda_topic_list:
