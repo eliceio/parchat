@@ -11,18 +11,25 @@
     <h3 class="chatting-room-filter-text">Models: </h3>
     <button class="ui toggle active button models" value="progressive">Progressive</button>
     <button class="ui toggle active button models" value="conservative">Conservative</button>
-    <button class="ui toggle active button models" value="neutral1">Neutral1</button>
-    <button class="ui toggle active button models" value="neutral2">Neutral2</button>
-    <button class="ui toggle active button models" value="neutral2_meta">Neutral2+META</button>
+    <button class="ui toggle active button models" value="neutral1">Neutral</button>
+    <button class="ui toggle active button models" value="neutral2_meta">Neutral+Metadata</button>
 </div>
 <div class="ui right aligned basic segment chatting-room-filter">
     <h3 class="chatting-room-filter-text">Scores: </h3>
     <button class="ui toggle active button scores" value="model">Model</button>
     <button class="ui toggle active button scores" value="sentence">Sentence</button>
+    <i id="score_formula" class="info icon"></i>
     
     <h3 class="chatting-room-filter-text">Similarity Metrics: </h3>
     <button class="ui toggle active button metrics" value="l2">L2 norm</button>
     <button class="ui toggle button metrics" value="cosine">Cosine</button>
+</div>
+
+<div id="score_formula_modal" class="ui large modal">
+    <div class="header">Score Formula Explanation</div>
+    <div class="image content">
+        <img class="ui fluid image" src="{% static 'images/score_formula.png' %}"/>
+    </div>
 </div>
 {% endblock %}
 

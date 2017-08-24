@@ -1,5 +1,6 @@
 $(function() {
     $('.ui.button.toggle').state();
+    $('.ui.modal').modal();
 
     var csrftoken = getCookie('csrftoken');
     $.ajaxSetup({
@@ -15,7 +16,11 @@ $(function() {
         var code = (e.keyCode ? e.keyCode : e.which);
         if (code == "13")
             chat();
-    })
+    });
+
+    $("#score_formula").on("click", function(e) {
+        $("#score_formula_modal").modal("show");
+    });
 })
 
 
