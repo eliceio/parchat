@@ -81,6 +81,14 @@
     color: rgba(0,0,0,.8);
 }
 
+.ui.large.secondary.inverted.pointing.menu .right.item a.item {
+    padding: 0 !important;
+}
+
+#send-btn {
+    margin-left: 1rem;
+}
+
 @media only screen and (max-width: 700px) {
   .ui.fixed.menu {
     display: none !important;
