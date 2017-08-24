@@ -19,9 +19,9 @@ model_user_name_dict = {
     "user": "User",
     "progressive": "Progressive Congressperson",
     "conservative": "Conservative Congressperson",
-    "neutral1": "Neutral Congressperson(1)",
+    "neutral1": "Neutral Congressperson",
     "neutral2": "Neutral Congressperson(2)",
-    "neutral2_meta": "Neutral+META Congressperson",
+    "neutral2_meta": "Neutral+Metadata Congressperson",
     "congressperson": "Congressperson",
 }
 
