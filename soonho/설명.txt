@@ -1,0 +1,62 @@
+- 각.ipynb 설명 -
+
+0. QApair : 국회의원들의 나이, 이름, 소속정당 크롤링
+
+1-0. Word2Vec & LDA : 국회 회의록을 가지고 word2vec과 lda토픽모델링 진행
+
+1-1. Word2vec Result - word2vec 벡터를 이용해서 국회의원 scatter
+
+2. QApair - 국회 회의록에서 QA로 쓸만한 것들을 뽑아냄
+
+3. Part_Devide : QA들을 파트 별로 나눔
+
+4. Vectorize : 나눠진 QA들 벡터화
+
+5. Lstsq : LSM으로 a를 찾아냄
+
+6. Return : 사용자가 입력하면 대답을 Return
+
+
+-.ipynb에 사용된 변수 설명-
+
+QApair.ipynb- meet_dic : key는 회의 번호, value는 발언, 발언자 id, 정당 순서
+           lead_id : 회의 처음에 말하는(의석을 정돈해 주십시오,,,,,, ) 위원장?
+           
+           pro_Q : 발언이 a1->b1 이렇게 되어 있으면 a1을 저장하는 변수
+           pro_A : a1->b1 에서 b1을 저장하는 변수
+
+           _plus : pro_Q_plus 이렇게 뒤에 _plus가 붙어 있는 변수는 
+           발언이 a1 -> b1-> a2-> b2 이렇게 되어 있다고 가정하면 b1->a2 이렇게 되는 것들을 저장하는 변수
+ 
+
+Part_Divide.ipynb -  max_prob : 토픽의 확률들 중 가장 높은 확률
+                max_part : 확률이 가장 높은 파트
+                check : 모든 파트가 동일한 확률 일 때 check가 0 아니면 1
+                
+                
+-주요 파일(json 등) 설명 -
+
+word2vecmodel : Word2vec 모델
+
+ldamodel : LDA 모델
+
+ldamodel.id2word : 딕셔너리 생성할 때 사용
+
+
+con_Q : 보수 정당 질문
+con_A : 보수 정당 답변
+
+pro_Q : 진보 정당 질문
+pro_A : 진보 정당 답변
+
+all_Q : 전체 질문
+all_A : 전체 답변
+
+_part : 파트를 나눠서 저장된 QA
+
+_vec : 벡터화 된 QA
+
+A_estimate : lstsq로 나온 결과 
+
+
+
