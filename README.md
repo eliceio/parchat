@@ -1,8 +1,9 @@
-# parchat
+# Parchat
+Korean National Assembly Member Chat-Bot
+![Alt text](https://github.com/eliceio/parchat/blob/develop/Explanation.PNG)
 
-![Alt text](https://github.com/eliceio/parchat/blob/develop/explanation.PNG)
 
-## Team members
+# Team members
 - 김수인 - TA
 
 - 고경민 - Project Manager, Server Management, API Design & Develop
