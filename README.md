@@ -17,7 +17,7 @@ ex) Q: 증세입니까? A:글쎄 그 주목적은 결국은 ....
 
 4.Vectorize - QA pair vectorize to 230 dimensions(word2vec(200) + lda(30)).
 
-5.Least-square Method - A(230) = Q(230) * Transformation Matrix.
+5.Least-square Method - Find Transformation Matrix to LSM. A(230) = Q(230) * Transformation Matrix.
 
 6.Web Development - Django(Web server), Flask(API)
 
